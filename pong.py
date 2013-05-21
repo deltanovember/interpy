@@ -17,7 +17,16 @@ ball_pos = [WIDTH / 2, HEIGHT / 2]
 paddle1_vel = [0, 0]
 paddle2_vel = [0, 0]
 vel = [0, 1]
+p1_score = 0
+p2_score = 0
 
+def reset():
+    global p1_score, p2_score
+    p1_score = 0
+    p2_score = 0
+    left = random.randrange(2) == 0
+    ball_init(left)
+    
 # pos - top left
 def draw_paddle(c, pos):
     color = "White"
@@ -53,7 +62,7 @@ def new_game():
     ball_init(left)
 
 def draw(c):
-    global score1, score2, paddle1_pos, paddle2_pos, ball_pos, ball_vel
+    global p1_score, p2_score, paddle1_pos, paddle2_pos, ball_pos, ball_vel
  
     # update paddle's vertical position, keep paddle on the screen
     p1y = paddle1_pos[1] + paddle1_vel[1]
@@ -95,11 +104,17 @@ def draw(c):
             vel[1] = -vel[1] * accel
             vel[0] = -vel[0] * accel
         else:
+            if ball_pos[0] <= PAD_WIDTH:
+                p2_score += 1
+            if ball_pos[0] + BALL_RADIUS >= WIDTH - PAD_WIDTH:
+                p1_score += 1
             right = vel[0] < 0
             ball_init(right)
             
     # draw ball and scores
     c.draw_circle(ball_pos, BALL_RADIUS, 2, "White", "White")
+    c.draw_text(str(p1_score), (140, 50), 50, "White")
+    c.draw_text(str(p2_score), (440, 50), 50, "White")
         
 def keydown(key):
     global paddle1_vel, paddle2_vel
@@ -108,17 +123,24 @@ def keydown(key):
         paddle2_vel[1] -= vel
     if key == simplegui.KEY_MAP["down"]:
         paddle2_vel[1] = vel        
-   
+    if key == simplegui.KEY_MAP["w"]:
+        paddle1_vel[1] -= vel
+    if key == simplegui.KEY_MAP["s"]:
+        paddle1_vel[1] = vel 
+        
 def keyup(key):
     global paddle1_vel, paddle2_vel
     if key == simplegui.KEY_MAP["up"] or key == simplegui.KEY_MAP["down"]:
         paddle2_vel[1] = 0
-
+    if key == simplegui.KEY_MAP["w"] or key == simplegui.KEY_MAP["s"]:
+        paddle1_vel[1] = 0
+        
 # create frame
 frame = simplegui.create_frame("Pong", WIDTH, HEIGHT)
 frame.set_draw_handler(draw)
 frame.set_keydown_handler(keydown)
 frame.set_keyup_handler(keyup)
+frame.add_button("Reset", reset, 200)
 
 
 # start frame
